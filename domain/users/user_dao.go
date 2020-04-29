@@ -9,25 +9,26 @@ import (
 )
 
 const (
-	queryInsertUser  = "INSERT INTO users(first_name, last_name, email, date_created) VALUES (?, ?, ?, ?);"
 	indexUniqueEmail = "email_uindex"
-)
-
-var (
-	usersDB = make(map[int64]*User)
+	errorNoRows      = "no rows in result set"
+	queryInsertUser  = "INSERT INTO users(first_name, last_name, email, date_created) VALUES (?, ?, ?, ?);"
+	queryGetUser     = "SELECT id, first_name, last_name, email, date_created FROM users WHERE id = ?;"
 )
 
 func (user *User) Get(userId int64) *errors.RestErr {
-	result := usersDB[userId]
-	if result == nil {
-		return errors.NewNotFoundError(fmt.Sprintf("user %d not found", userId))
+	stmt, err := users.Client.Prepare(queryGetUser)
+	if err != nil {
+		return errors.NewInternalServerError(err.Error())
 	}
+	defer stmt.Close()
 
-	user.Id = result.Id
-	user.FirstName = result.FirstName
-	user.LastName = result.LastName
-	user.Email = result.Email
-	user.DateCreated = result.DateCreated
+	result := stmt.QueryRow(userId)
+	if err := result.Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.DateCreated); err != nil {
+		if strings.Contains(err.Error(), errorNoRows) {
+			return errors.NewNotFoundError(fmt.Sprintf("User %d not found", userId))
+		}
+		return errors.NewInternalServerError(fmt.Sprintf("error on trying to get user by id %d: %s", userId, err.Error()))
+	}
 
 	return nil
 }
