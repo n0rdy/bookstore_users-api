@@ -1,6 +1,7 @@
 package users
 
 import (
+	"bookstore_oauth-go/oauth"
 	"bookstore_users-api/domain/users"
 	"bookstore_users-api/services"
 	"bookstore_users-api/utils/errors"
@@ -35,7 +36,12 @@ func Create(c *gin.Context) {
 }
 
 func Get(c *gin.Context) {
-	userId, idErr := geyUserId(c.Param("user_id"))
+	if err := oauth.AuthenticateRequest(c.Request); err != nil {
+		c.JSON(err.Status, err)
+		return
+	}
+
+	userId, idErr := getUserId(c.Param("user_id"))
 	if idErr != nil {
 		c.JSON(idErr.Status, idErr)
 		return
@@ -47,7 +53,11 @@ func Get(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, user.Marshall(c.GetHeader("X-Public") == "true"))
+	if oauth.GetCallerId(c.Request) == user.Id {
+		c.JSON(http.StatusOK, user.Marshall(false))
+		return
+	}
+	c.JSON(http.StatusOK, user.Marshall(oauth.IsPublic(c.Request)))
 }
 
 func Update(c *gin.Context) {
@@ -115,4 +125,12 @@ func Login(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, user.Marshall(c.GetHeader("X-Public") == "true"))
+}
+
+func getUserId(userIdParam string) (int64, *errors.RestErr) {
+	userId, userErr := strconv.ParseInt(userIdParam, 10, 64)
+	if userErr != nil {
+		return 0, errors.NewBadRequestError("user id should be a number")
+	}
+	return userId, nil
 }
