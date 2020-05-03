@@ -1,11 +1,11 @@
 package users
 
 import (
-	"bookstore_oauth-go/oauth"
-	"bookstore_users-api/domain/users"
-	"bookstore_users-api/services"
-	"bookstore_users-api/utils/errors"
 	"github.com/gin-gonic/gin"
+	"github.com/n0rdy/bookstore_oauth-go/oauth"
+	"github.com/n0rdy/bookstore_users-api/domain/users"
+	"github.com/n0rdy/bookstore_users-api/services"
+	"github.com/n0rdy/bookstore_users-api/utils/errors"
 	"net/http"
 	"strconv"
 )

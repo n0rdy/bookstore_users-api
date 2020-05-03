@@ -1,8 +1,8 @@
 package app
 
 import (
-	"bookstore_users-api/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/n0rdy/bookstore_users-api/logger"
 )
 
 var (

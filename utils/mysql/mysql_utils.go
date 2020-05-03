@@ -1,8 +1,8 @@
 package mysql
 
 import (
-	"bookstore_users-api/utils/errors"
 	"github.com/go-sql-driver/mysql"
+	"github.com/n0rdy/bookstore_users-api/utils/errors"
 	"strings"
 )
 
